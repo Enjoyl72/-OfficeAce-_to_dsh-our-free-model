@@ -127,7 +127,36 @@ V11 签名的要点：`x-sdk-date`、`x-security-token` 头；规范串
 **这是纯逆向实现**：OfficeAce 客户端或网关一旦更新，接口/签名可能变化，届时需要重新抓包核对
 （重点：OAuth 的 `client_id` 与 `redirect_uri` 是否仍允许本机、STS/订阅接口是否变动、V11 签名参数）。
 
-插件自身的**自动更新会覆盖 `pack.js` / `client.js`**，覆盖后本渠道会失效，需按本文档重新打补丁。
+### 5.1 插件更新后怎么恢复（一键）
+
+插件自身的**自动更新会覆盖 `pack.js` / `client.js`**，覆盖后本渠道会失效。
+用本仓库的 `apply-officeace.py` 一键重打：
+
+```bash
+# 先检查能不能打（不写文件）
+python apply-officeace.py --check
+
+# 正式重打（自动备份为 *.officeace-bak-<时间戳>，然后重启 dsh）
+python apply-officeace.py
+
+# 插件不在默认路径时
+python apply-officeace.py --plugin "D:\...\node_modules\dsh-our-free-model"
+```
+
+脚本是**幂等**的：已经打过的步骤会显示 `skip`，不会重复插入。
+若某步显示 `FAIL`（说明上游结构变了、锚点找不到），**不会写入任何文件**，把 FAIL 那几行发出来即可重新对齐。
+
+> 提示：插件更新时会把覆盖前的旧文件存到 `~/.dsh/our-free-model/rollback/`——那里是**你打过补丁的版本**，
+> 可用来比对。
+
+### 5.2 目录说明
+
+```
+README.md               本文档
+apply-officeace.py      一键重打补丁脚本（见 §5.1）
+blocks/                 脚本要插入的两段代码（OfficeAce 登录 / 额度领取）
+patches/                改动后的 client.js / index.js / NOTICE.md（参考用；pack.js 因含上游 Google 凭据未收录）
+```
 
 ---
 
